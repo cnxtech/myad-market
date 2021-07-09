@@ -5,7 +5,6 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v2.5
 import "./ArtAuction.sol";
 
 contract ArtMarket is ERC721Full, Ownable {
-    using SafeMath for uint;
     constructor() ERC721Full("ArtMarket", "ART") public {}
     
     // Setup counter for token_ids
@@ -32,9 +31,6 @@ contract ArtMarket is ERC721Full, Ownable {
     // Create a return event if customer is unsatisfied and needs to return art to artist, info will be recorded on token
     event ReturnArt(uint token_id, string return_uri);
     
-    // Create a purchase event to attach purchase info to the token
-    event Purchase(uint token_id, address highestBidder, uint highestBid, uint sell_date);
-    
     // artRegistered accepts a uint token_id, and checks if the token exists using the
     // ERC721 _exists function
     modifier artRegistered(uint token_id) {
@@ -43,12 +39,12 @@ contract ArtMarket is ERC721Full, Ownable {
     }
     
     // Creates a new ArtAuction contract in the mapping relating to the token_id
-    // Passes the auction_address to the ArtAuction constructor to set it as the beneficiary
-    function createAuction(uint token_id, address payable artist_address) public {
+    // Passes the artist_address to the ArtAuction constructor to set it as the beneficiary
+    function createAuction(uint token_id, address payable artist_address) public onlyOwner {
         auctions[token_id] = new ArtAuction(artist_address);
     }
     
-    function registerArt(string memory uri, address payable artist_address) public payable returns (uint) {
+    function registerArt(string memory uri, address payable artist_address) public payable onlyOwner returns (uint) {
         // Increment the token_ids, and set a new id as token_ids.current
         token_ids.increment();
         uint token_id = token_ids.current();
@@ -67,24 +63,22 @@ contract ArtMarket is ERC721Full, Ownable {
         {
             // If buyer answers true they are satisfied with their art upon arrival
             ArtAuction auction = auctions[token_id];
+            require (now > auction.endTime(), "There is still time in the auction");
             require (msg.sender == auction.highestBidder(), "You are not the buyer!" );
-            // Auction is finalized and ends
+            // 
             customer_satisfied = true;
-            // Auction is finalized and ends
-            //endAuction(token_id);
         }
-        else {
+        else 
+        {
             // If the buyer is not satisfied they must start their art return with the return_art function
             // Bidding restarts at 0ETH
             ArtAuction auction = auctions[token_id];
             require (msg.sender == auction.highestBidder(), "You are not the buyer!");
             require (customer_return, "No pending return exists");
             // Once return_art is initiated, the highest bid is returned to the buyer
-            msg.sender.transfer(auction.highestBid());
             // Auction resets and bidding starts at 0ETH
             auction.resetAuction();
-            auctions[token_id] = ArtAuction(auction_address);
-            
+            auctions[token_id] = new ArtAuction(artist_address);
         }
         
     }
@@ -96,18 +90,11 @@ contract ArtMarket is ERC721Full, Ownable {
         auction.auctionEnd();
     }
     
-    function transferToken(uint token_id) public payable artRegistered(token_id) {
+    function transferToken(uint token_id) public onlyOwner artRegistered(token_id) {
         // Require that buyer has reported satisfied in the customer_satisfied function
         require (customer_satisfied, "Customer has not reported as satisfied");
         // Fetch the ArtAuction from the token_id
         ArtAuction auction = auctions[token_id];
-        // Initialize variables for Purchase event
-        address highestBidder = auction.highestBidder();
-        uint highestBid = auction.highestBid();
-        uint sell_date = now;
-        // Attach purchase info to token
-        emit Purchase(token_id, highestBidder, highestBid, sell_date);
-        // Transfer from the owner of the token to the highest bidder of this auction, given this token_id
         safeTransferFrom(owner(), auction.highestBidder(), token_id);
         endAuction(token_id);
     }
@@ -128,6 +115,12 @@ contract ArtMarket is ERC721Full, Ownable {
         // Return the highest bid of the ArtAuction relating to the given token_id
         ArtAuction auction = auctions[token_id];
         return auction.highestBid();
+    }
+    
+    function artistAddress(uint token_id) public view artRegistered(token_id) returns(address) {
+        // Fetch the ArtAuction relating to a given token_id and return artist_address
+        ArtAuction auction = auctions[token_id];
+        return auction.beneficiary();
     }
     
     function pendingReturn(uint token_id, address sender) public view artRegistered(token_id) returns(uint) {
@@ -154,12 +147,11 @@ contract ArtMarket is ERC721Full, Ownable {
     function return_art(uint token_id, string memory return_uri) public {
         // Fetch the ArtAuction from the token_id
         ArtAuction auction = auctions[token_id];
+        require (now > auction.endTime(), "There is still time in the auction");
         require(msg.sender == auction.highestBidder(), "You are not the buyer!");
         customer_return = true;
         // Attach return shipping info to token
         emit ReturnArt(token_id, return_uri);
     }
-    
-    
     
 }

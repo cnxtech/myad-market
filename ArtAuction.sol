@@ -3,12 +3,13 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v2.5
 
 contract ArtAuction {
     using SafeMath for uint;
-    address payable deployer = msg.sender;
+    address payable public deployer;
     address payable public beneficiary;
 
     // Current state of the auction.
-    address public highestBidder;
+    address payable public highestBidder;
     uint public highestBid;
+    uint public endTime;
     
     // Allowed withdrawals of previous bids
     mapping(address => uint) pendingReturns;
@@ -19,16 +20,16 @@ contract ArtAuction {
 
     // Events that will be emitted on changes.
     event HighestBidIncreased(address bidder, uint amount);
-    event AuctionEnded(address winner, uint amount);
+    event AuctionEnded(address winner, uint amount, uint endTime);
 
-    /// Create a simple auction with `_biddingTime`
-    /// seconds bidding time on behalf of the
-    /// beneficiary address `_beneficiary`.
+
+    // constructor for beneficiary address `_beneficiary`.
     constructor(
         address payable _beneficiary
     ) public {
-        deployer = msg.sender; // set as the ArtMarket
+        deployer = 0x35c5A6C9daDf04a573d3c75B0A31b93d8C6cCB51; // set as the ArtMarket
         beneficiary = _beneficiary;
+        endTime = now + 3 minutes;
     }
 
     /// Bid on the auction with the value sent
@@ -43,12 +44,13 @@ contract ArtAuction {
             "There already is a higher bid."
         );
 
-        require(!ended, "auctionEnd has already been called.");
-
+        require(now < endTime, "Out of bidding time. Auction has ended.");
+        
         if (highestBid != 0) {
 
             pendingReturns[highestBidder] += highestBid;
         }
+        
         highestBidder = sender;
         highestBid = msg.value;
         emit HighestBidIncreased(sender, msg.value);
@@ -76,23 +78,23 @@ contract ArtAuction {
     /// End the auction and send the highest bid
     /// to the beneficiary.
     function auctionEnd() public {
-
+        require(now >= endTime, "Auction has not ended.");
         require(!ended, "auctionEnd has already been called.");
-        require(msg.sender == deployer, "You are not the auction deployer!");
 
         ended = true;
-        emit AuctionEnded(highestBidder, highestBid);
+        emit AuctionEnded(highestBidder, highestBid, endTime);
     
-        //uint auction_commission = highestBid * 3 / 100;
-        //uint payment = highestBid.sub(auction_commission); 
+        uint auction_commission = highestBid.mul(3).div(100);
+        uint payment = highestBid.sub(auction_commission); 
         
-        beneficiary.transfer(highestBid);
-        //deployer.transfer(auction_commission);
+        beneficiary.transfer(payment);
+        deployer.transfer(auction_commission);
 
     }
 
     function resetAuction () public {
         //Reset auction if buyer is unsatisfied
+        highestBidder.transfer(highestBid);
         highestBidder = address(0);
         highestBid = 0;
         ended = false;
