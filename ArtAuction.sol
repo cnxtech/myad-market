@@ -23,7 +23,7 @@ contract ArtAuction {
     event AuctionEnded(address winner, uint amount, uint endTime);
 
 
-    // constructor for beneficiary address `_beneficiary`.
+    // constructor for beneficiary address `_beneficiary`, and endtime ' now + 3 minutes'.
     constructor(
         address payable _beneficiary
     ) public {
@@ -43,7 +43,7 @@ contract ArtAuction {
             msg.value > highestBid,
             "There already is a higher bid."
         );
-
+        // Revert the call if the bidding period is over. 
         require(now < endTime, "Out of bidding time. Auction has ended.");
         
         if (highestBid != 0) {
