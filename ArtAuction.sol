@@ -24,6 +24,7 @@ contract ArtAuction {
 
 
     // constructor for beneficiary address `_beneficiary`, and endTime ' now + 3 minutes'.
+    // The bidding time is set to 3 minutes after deploying the contacts for the presentation purpose. 
     constructor(
         address payable _beneficiary
     ) public {
