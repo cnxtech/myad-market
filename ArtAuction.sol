@@ -23,7 +23,7 @@ contract ArtAuction {
     event AuctionEnded(address winner, uint amount, uint endTime);
 
 
-    // constructor for beneficiary address `_beneficiary`, and endtime ' now + 3 minutes'.
+    // constructor for beneficiary address `_beneficiary`, and endTime ' now + 3 minutes'.
     constructor(
         address payable _beneficiary
     ) public {
