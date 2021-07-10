@@ -21,7 +21,7 @@ Tested on a local network using [Ganache](https://www.trufflesuite.com/docs/gana
 ---
 
 ## Instructions
-*Note: For the purpose of these instructions, bidding time has been set to two minutes. All demonstrations are performed on a local test network*
+*Note: For the purpose of these instructions, bidding time has been set to three minutes. All demonstrations are performed on a local test network*
 
 - Create a URI using Pinata for a json file containing artwork information.
 ![URI](Resources/uri.gif)
