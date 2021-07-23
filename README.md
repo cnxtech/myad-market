@@ -5,7 +5,7 @@ Myad Market allows anyone to mint their own artwork and auction it off directly 
 
 The following code contains two solidity smart contracts: ArtAuction.sol and ArtMarket.sol. ArtAuction contains code to execute each individual auction including functionality for bidding, withdrawing bids, auction timers, transfering funds and reseting the auction if necessary.  ArtMarket includes the functionality of ArtAuction as well as the marketplace including creating auctions, registering art, ending auctions, shipping, returning art and customer satisfaction.
 
-This platform allows for the safe registration, sale, and transfer of physical artwork online through a digital marketplace via a ART token.  There are many potential applications beyond artwork.  This method can be efficiently applied to the sale and transfer of anything online.  This allows for disintermediation as well as increased transparency, traceability, security, privacy and speed at a low cost for all users of the Myad Marketplace blockchain.
+This platform allows for the safe registration, sale, and transfer of physical artwork online through a digital marketplace via an ART token.  There are many potential applications beyond artwork.  This method can be efficiently applied to the sale and transfer of anything online.  This allows for disintermediation as well as increased transparency, traceability, security, privacy and speed at a low cost for all users of the Myad Marketplace blockchain on the Ethereum Network.
 
 ---
 
